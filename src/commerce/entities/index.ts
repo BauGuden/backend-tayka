@@ -1,0 +1,1 @@
+export { Commerce } from './commerce.entity';
