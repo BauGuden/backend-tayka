@@ -1,0 +1,1 @@
+export { Logistic } from './logistic.entity';
