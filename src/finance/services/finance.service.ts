@@ -1,25 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { CreateFinanceDto, UpdateFinanceDto } from '../dto';
+import { Not } from 'typeorm';
+import { MedioPago } from '../entities';
+import {
+  PageQuery,
+  ReadModelService,
+} from '../../geography/services/read-model.service';
 
 @Injectable()
 export class FinanceService {
-  create(createFinanceDto: CreateFinanceDto) {
-    return 'This action adds a new finance';
-  }
-
-  findAll() {
-    return `This action returns all finance`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} finance`;
-  }
-
-  update(id: number, updateFinanceDto: UpdateFinanceDto) {
-    return `This action updates a #${id} finance`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} finance`;
+  constructor(private readonly reads: ReadModelService) {}
+  mediosPago(page: PageQuery) {
+    return this.reads.list(
+      MedioPago,
+      ['id', 'codigo', 'tipoMedio', 'nombreProveedorServicio', 'codigoMoneda'],
+      page,
+      {
+        estaHabilitado: true,
+        ambiente: 'produccion',
+        tipoMedio: Not('prueba_manual'),
+      },
+      { codigo: 'ASC', id: 'ASC' },
+    );
   }
 }

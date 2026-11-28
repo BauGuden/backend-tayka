@@ -1,33 +1,97 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { GeographyService } from './services';
-import { CreateGeographyDto, UpdateGeographyDto } from './dto';
+import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
+import { ApiTags, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString, MaxLength, IsUUID } from 'class-validator';
+import { GeographyService } from './services/geography.service';
+import { PageQuery } from './services/read-model.service';
+import { ApiLecturaPublica } from '../common/api-lectura-publica';
+import {
+  DepartamentoPublicoDto,
+  CiudadPublicoDto,
+} from '../common/dtos/public-api-responses.dto';
 
+class DepartamentoQuery extends PageQuery {
+  @ApiPropertyOptional({
+    type: String,
+    maxLength: 100,
+    description: 'Texto literal para buscar en el nombre.',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  nombre?: string;
+}
+
+class CiudadQuery extends PageQuery {
+  @ApiPropertyOptional({
+    type: String,
+    format: 'uuid',
+    description: 'Filtra por el UUID del departamento.',
+  })
+  @IsOptional()
+  @IsUUID()
+  departamentoId?: string;
+}
+
+@ApiTags('geography')
 @Controller('geography')
 export class GeographyController {
-  constructor(private readonly geographyService: GeographyService) {}
+  constructor(private readonly service: GeographyService) {}
 
-  @Post()
-  create(@Body() createGeographyDto: CreateGeographyDto) {
-    return this.geographyService.create(createGeographyDto);
+  @Get('departamentos')
+  @ApiLecturaPublica(
+    DepartamentoPublicoDto,
+    'Listar departamentos',
+    'Permite buscar por una parte literal del nombre. Orden por nombre y UUID.',
+    { list: true },
+  )
+  departamentos(@Query() q: DepartamentoQuery) {
+    return this.service.departamentos(q, q.nombre);
   }
 
-  @Get()
-  findAll() {
-    return this.geographyService.findAll();
+  @Get('departamentos/:id')
+  @ApiLecturaPublica(
+    DepartamentoPublicoDto,
+    'Consultar un departamento',
+    'Busca por identificador.',
+    { idDescription: 'UUID del departamento.' },
+  )
+  departamento(@Param('id', ParseUUIDPipe) id: string) {
+    return this.service.departamento(id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.geographyService.findOne(+id);
+  @Get('departamentos/:id/ciudades')
+  @ApiLecturaPublica(
+    CiudadPublicoDto,
+    'Listar ciudades de un departamento',
+    'Comprueba que el departamento exista. Orden por nombre y UUID.',
+    { list: true, idDescription: 'UUID del departamento.' },
+  )
+  ciudadesDeDepartamento(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() q: PageQuery,
+  ) {
+    return this.service.ciudadesDeDepartamento(id, q);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateGeographyDto: UpdateGeographyDto) {
-    return this.geographyService.update(+id, updateGeographyDto);
+  @Get('ciudades')
+  @ApiLecturaPublica(
+    CiudadPublicoDto,
+    'Listar ciudades',
+    'Puede filtrarse por departamento. Orden por nombre y UUID.',
+    { list: true },
+  )
+  ciudades(@Query() q: CiudadQuery) {
+    return this.service.ciudades(q, q.departamentoId);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.geographyService.remove(+id);
+  @Get('ciudades/:id')
+  @ApiLecturaPublica(
+    CiudadPublicoDto,
+    'Consultar una ciudad',
+    'Busca por identificador.',
+    { idDescription: 'UUID de la ciudad.' },
+  )
+  ciudad(@Param('id', ParseUUIDPipe) id: string) {
+    return this.service.ciudad(id);
   }
 }

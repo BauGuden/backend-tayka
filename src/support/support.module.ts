@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
+import { GeographyModule } from '../geography/geography.module';
 import { SupportService } from './services/support.service';
-import { SupportController } from './support.controller';
+import { CasosSoporteService } from './services/casos-soporte.service';
 
 @Module({
-  controllers: [SupportController],
-  providers: [SupportService],
+  imports: [GeographyModule],
+  providers: [SupportService, CasosSoporteService],
 })
 export class SupportModule {}

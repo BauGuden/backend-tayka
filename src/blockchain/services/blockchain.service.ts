@@ -1,25 +1,90 @@
 import { Injectable } from '@nestjs/common';
-import { CreateBlockchainDto, UpdateBlockchainDto } from '../dto';
+
+import { Activo, DespliegueContrato, Red } from '../entities';
+import {
+  PageQuery,
+  ReadModelService,
+} from '../../geography/services/read-model.service';
 
 @Injectable()
 export class BlockchainService {
-  create(createBlockchainDto: CreateBlockchainDto) {
-    return 'This action adds a new blockchain';
+  constructor(private readonly reads: ReadModelService) {}
+  redes(page: PageQuery) {
+    return this.reads.list(
+      Red,
+      ['id', 'nombre'],
+      page,
+      { estaHabilitado: true },
+      { nombre: 'ASC', id: 'ASC' },
+    );
   }
 
-  findAll() {
-    return `This action returns all blockchain`;
+  red(id: string) {
+    return this.reads.detail(Red, ['id', 'nombre'], {
+      id,
+      estaHabilitado: true,
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} blockchain`;
+  activos(page: PageQuery) {
+    return this.reads.list(
+      Activo,
+      [
+        'id',
+        'redId',
+        'codigoActivo',
+        'direccionEmisor',
+        'direccionContrato',
+        'decimales',
+      ],
+      page,
+      { estaHabilitado: true, red: { estaHabilitado: true } },
+    );
   }
 
-  update(id: number, updateBlockchainDto: UpdateBlockchainDto) {
-    return `This action updates a #${id} blockchain`;
+  activo(id: string) {
+    return this.reads.detail(
+      Activo,
+      [
+        'id',
+        'redId',
+        'codigoActivo',
+        'direccionEmisor',
+        'direccionContrato',
+        'decimales',
+      ],
+      { id, estaHabilitado: true, red: { estaHabilitado: true } },
+    );
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} blockchain`;
+  despliegues(page: PageQuery) {
+    return this.reads.list(
+      DespliegueContrato,
+      [
+        'id',
+        'redId',
+        'nombreContrato',
+        'direccionContrato',
+        'version',
+        'desplegadoEn',
+      ],
+      page,
+      { estaActivo: true, red: { estaHabilitado: true } },
+    );
+  }
+
+  despliegue(id: string) {
+    return this.reads.detail(
+      DespliegueContrato,
+      [
+        'id',
+        'redId',
+        'nombreContrato',
+        'direccionContrato',
+        'version',
+        'desplegadoEn',
+      ],
+      { id, estaActivo: true, red: { estaHabilitado: true } },
+    );
   }
 }

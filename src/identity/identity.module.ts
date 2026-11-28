@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
+import { GeographyModule } from '../geography/geography.module';
 import { IdentityService } from './services/identity.service';
-import { IdentityController } from './identity.controller';
 
 @Module({
-  controllers: [IdentityController],
+  imports: [GeographyModule],
   providers: [IdentityService],
 })
 export class IdentityModule {}

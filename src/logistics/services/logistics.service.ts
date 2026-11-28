@@ -1,25 +1,46 @@
 import { Injectable } from '@nestjs/common';
-import { CreateLogisticDto, UpdateLogisticDto } from '../dto';
+
+import { PuntoRetiro, Transportista } from '../entities';
+import {
+  PageQuery,
+  ReadModelService,
+} from '../../geography/services/read-model.service';
 
 @Injectable()
 export class LogisticsService {
-  create(createLogisticDto: CreateLogisticDto) {
-    return 'This action adds a new logistic';
+  constructor(private readonly reads: ReadModelService) {}
+  puntosRetiro(page: PageQuery, ciudadId?: string) {
+    return this.reads.list(
+      PuntoRetiro,
+      ['id', 'ciudadId', 'nombre', 'direccion', 'latitud', 'longitud'],
+      page,
+      { estaActivo: true, ...(ciudadId && { ciudadId }) },
+      { nombre: 'ASC', id: 'ASC' },
+    );
   }
 
-  findAll() {
-    return `This action returns all logistics`;
+  puntoRetiro(id: string) {
+    return this.reads.detail(
+      PuntoRetiro,
+      ['id', 'ciudadId', 'nombre', 'direccion', 'latitud', 'longitud'],
+      { id, estaActivo: true },
+    );
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} logistic`;
+  transportistas(page: PageQuery) {
+    return this.reads.list(
+      Transportista,
+      ['id', 'nombre'],
+      page,
+      { estado: 'activo' },
+      { nombre: 'ASC', id: 'ASC' },
+    );
   }
 
-  update(id: number, updateLogisticDto: UpdateLogisticDto) {
-    return `This action updates a #${id} logistic`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} logistic`;
+  transportista(id: string) {
+    return this.reads.detail(Transportista, ['id', 'nombre'], {
+      id,
+      estado: 'activo',
+    });
   }
 }

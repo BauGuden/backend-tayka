@@ -1,25 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import { CreateOperationDto, UpdateOperationDto } from '../dto';
+import { EntityManager } from 'typeorm';
+import { RegistroAuditoria } from '../entities';
+
+export interface AccionAuditada {
+  usuarioActorId: string;
+  accion: string;
+  tipoEntidad: string;
+  entidadId: string;
+}
 
 @Injectable()
 export class OperationsService {
-  create(createOperationDto: CreateOperationDto) {
-    return 'This action adds a new operation';
-  }
-
-  findAll() {
-    return `This action returns all operations`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} operation`;
-  }
-
-  update(id: number, updateOperationDto: UpdateOperationDto) {
-    return `This action updates a #${id} operation`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} operation`;
+  /** Insert using the same transaction manager as the action being audited. */
+  async registrarAuditoria(
+    manager: EntityManager,
+    accion: AccionAuditada,
+  ): Promise<void> {
+    if (!manager.queryRunner?.isTransactionActive) {
+      throw new Error('La auditor?a requiere una transacci?n activa');
+    }
+    await manager
+      .createQueryBuilder()
+      .insert()
+      .into<AccionAuditada>(RegistroAuditoria)
+      .values({
+        usuarioActorId: accion.usuarioActorId,
+        accion: accion.accion,
+        tipoEntidad: accion.tipoEntidad,
+        entidadId: accion.entidadId,
+      })
+      .execute();
   }
 }

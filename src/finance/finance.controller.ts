@@ -1,33 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { FinanceService } from './services';
-import { CreateFinanceDto, UpdateFinanceDto } from './dto';
+import { Controller, Get, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { FinanceService } from './services/finance.service';
+import { PageQuery } from '../geography/services/read-model.service';
+import { ApiLecturaPublica } from '../common/api-lectura-publica';
+import { MedioPagoPublicoDto } from '../common/dtos/public-api-responses.dto';
 
+@ApiTags('finance')
 @Controller('finance')
 export class FinanceController {
-  constructor(private readonly financeService: FinanceService) {}
+  constructor(private readonly service: FinanceService) {}
 
-  @Post()
-  create(@Body() createFinanceDto: CreateFinanceDto) {
-    return this.financeService.create(createFinanceDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.financeService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.financeService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFinanceDto: UpdateFinanceDto) {
-    return this.financeService.update(+id, updateFinanceDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.financeService.remove(+id);
+  @Get('medios-pago')
+  @ApiLecturaPublica(
+    MedioPagoPublicoDto,
+    'Listar medios de pago disponibles',
+    'Incluye medios habilitados para producción. Excluye los medios de prueba manual. Orden por código y UUID.',
+    { list: true },
+  )
+  mediosPago(@Query() q: PageQuery) {
+    return this.service.mediosPago(q);
   }
 }

@@ -1,25 +1,30 @@
 import { Injectable } from '@nestjs/common';
-import { CreateSupportDto, UpdateSupportDto } from '../dto';
+import { CasosSoporteService } from './casos-soporte.service';
+import { Notificacion } from '../entities';
+import {
+  PageQuery,
+  ReadModelService,
+} from '../../geography/services/read-model.service';
 
 @Injectable()
 export class SupportService {
-  create(createSupportDto: CreateSupportDto) {
-    return 'This action adds a new support';
+  constructor(
+    private readonly reads: ReadModelService,
+    private readonly casos: CasosSoporteService,
+  ) {}
+
+  async mensajesPropios(usuarioId: string, casoId: string, page: PageQuery) {
+    await this.casos.detallePropio(usuarioId, casoId);
+    return this.casos.mensajesPublicosDelCaso(usuarioId, casoId, page);
   }
 
-  findAll() {
-    return `This action returns all support`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} support`;
-  }
-
-  update(id: number, updateSupportDto: UpdateSupportDto) {
-    return `This action updates a #${id} support`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} support`;
+  notificacionesPropias(usuarioId: string, page: PageQuery) {
+    return this.reads.list(
+      Notificacion,
+      ['id', 'canal', 'titulo', 'contenido', 'leidoEn', 'creadoEn'],
+      page,
+      { usuarioId },
+      { creadoEn: 'ASC', id: 'ASC' },
+    );
   }
 }

@@ -1,25 +1,48 @@
 import { Injectable } from '@nestjs/common';
-import { CreateGeographyDto, UpdateGeographyDto } from '../dto';
+import { Ciudad, Departamento } from '../entities';
+import {
+  containsIgnoreCase,
+  PageQuery,
+  ReadModelService,
+} from './read-model.service';
+
+const DEPARTAMENTO = ['id', 'nombre', 'abreviatura'] as const;
+const CIUDAD = ['id', 'departamentoId', 'nombre', 'codigoPostal'] as const;
 
 @Injectable()
 export class GeographyService {
-  create(createGeographyDto: CreateGeographyDto) {
-    return 'This action adds a new geography';
+  constructor(private readonly reads: ReadModelService) {}
+
+  departamentos(page: PageQuery, nombre?: string) {
+    return this.reads.list(
+      Departamento,
+      DEPARTAMENTO,
+      page,
+      nombre ? { nombre: containsIgnoreCase(nombre) } : {},
+      { nombre: 'ASC', id: 'ASC' },
+    );
   }
 
-  findAll() {
-    return `This action returns all geography`;
+  departamento(id: string) {
+    return this.reads.detail(Departamento, DEPARTAMENTO, { id });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} geography`;
+  ciudades(page: PageQuery, departamentoId?: string) {
+    return this.reads.list(
+      Ciudad,
+      CIUDAD,
+      page,
+      departamentoId ? { departamentoId } : {},
+      { nombre: 'ASC', id: 'ASC' },
+    );
   }
 
-  update(id: number, updateGeographyDto: UpdateGeographyDto) {
-    return `This action updates a #${id} geography`;
+  ciudad(id: string) {
+    return this.reads.detail(Ciudad, CIUDAD, { id });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} geography`;
+  async ciudadesDeDepartamento(id: string, page: PageQuery) {
+    await this.departamento(id);
+    return this.ciudades(page, id);
   }
 }
